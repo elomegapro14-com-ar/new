@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subir fotos y videos (en la nube)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      text-align: center;
+      padding: 20px;
+      color: #222;
+    }
+    h1 { margin-bottom: 10px; }
+    .upload-box {
+      background: white;
+      border: 2px dashed #888;
+      padding: 20px;
+      border-radius: 10px;
+      display: inline-block;
+      margin-bottom: 30px;
+    }
+    input[type="file"] { display: none; }
+    label {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+      display: inline-block;
+      margin-top: 5px;
+    }
+    label:hover { background-color: #0056b3; }
+    video, img {
+      width: 90%;
+      max-width: 600px;
+      margin-top: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .gallery {
+      margin-top: 40px;
+    }
+    .media-item {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 15px auto;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+    .media-item h3 {
+      margin: 5px 0;
+      font-size: 18px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>📸 Subir fotos y videos</h1>
+  <p>Sube archivos y míralos desde cualquier dispositivo.</p>
+
+  <div class="upload-box">
+    <input type="file" id="mediaInput" accept="video/*,image/*" multiple>
+    <label for="mediaInput">Seleccionar fotos o videos</label>
+  </div>
+
+  <div class="gallery" id="mediaGallery">
+    <h2>Galería</h2>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js"></script>
+
+  <script>
+    // 🔥 Configuración de Firebase (PEGA AQUÍ TU firebaseConfig)
+    const firebaseConfig = {
+      apiKey: "TU_API_KEY",
+      authDomain: "TU_DOMINIO.firebaseapp.com",
+      projectId: "TU_PROJECT_ID",
+      storageBucket: "TU_BUCKET.appspot.com",
+      messagingSenderId: "TU_ID",
+      appId: "TU_APP_ID"
+    };
+
+    // Inicializar Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const storage = firebase.storage();
+
+    const mediaInput = document.getElementById("mediaInput");
+    const gallery = document.getElementById("mediaGallery");
+
+    mediaInput.addEventListener("change", function() {
+      const files = this.files;
+      for (const file of files) {
+        const ref = storage.ref("uploads/" + file.name);
+        ref.put(file).then(snapshot => {
+          snapshot.ref.getDownloadURL().then(url => {
+            showMedia(url, file);
+          });
+        });
+      }
+      mediaInput.value = "";
+    });
+
+    function showMedia(url, file) {
+      const container = document.createElement("div");
+      container.className = "media-item";
+
+      const title = document.createElement("h3");
+      title.textContent = file.name;
+
+      let element;
+      if (file.type.startsWith("video/")) {
+        element = document.createElement("video");
+        element.src = url;
+        element.controls = true;
+      } else if (file.type.startsWith("image/")) {
+        element = document.createElement("img");
+        element.src = url;
+      }
+
+      container.appendChild(title);
+      container.appendChild(element);
+      gallery.appendChild(container);
+    }
+  </script>
+</body>
+</html>
